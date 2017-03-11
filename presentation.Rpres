@@ -1,0 +1,53 @@
+Predict Next Word - Data Product - Data science Capstone Project
+========================================================
+author: Calin
+date: 2017-03-10
+autosize: true
+
+Introduction "Predict Next Word" 
+========================================================
+
+###### The last part of the Data Science Specialization Course brought with it an interesting challenge: 
+
+**Design an application that - based on user input - is able to predict the following word in a sentence** 
+
+###### Based on a set of data provided by Swiftkey containing both twitter (lazy typers), blogs and news in four different languages, the challenge involved designing a model that can predict the following word in any given sentence. The capstone project was designed before Microsoft purchased Swiftkey, but it represents even today an interesting challenge for an aspiring data scientist. 
+
+###### Several R packages were used. For some Java reason I couldn't use RWeka, so I used other highly performant packages to process data: tm, stringi, wordcloud, dplyr, slam, data.table
+
+###### Next slide is a summary of the tasks. But for the impatient, here is the Prediction App: <https://calin.shinyapps.io/predict_next_word/>
+
+
+Summary of the tasks
+========================================================
+
+### The project was structured as follows:
+###### Introduction to the tasks, brief description of the data sources and suggested Natural Language Processing algorithms
+###### Data exploration, summaries, wordclouds, already covered here: <http://rpubs.com/calin/SwiftKey-Capstone-Project>
+###### Sample data, extend sampling until larger segments of the training data is covered
+###### Design a prediction model, evaluate it against unseen data (for me the most difficult task)
+###### Evaluate the feasability of a prediction model, find a tradeoff between quality and memory respective CPU usage
+###### Wrap the application and present it online with shiny: <https://calin.shinyapps.io/predict_next_word/>
+###### Describe the code and shiny app code [will be uploaded to github](https://github.com/uioreanu?tab=repositories) soon.
+
+Process Description 
+========================================================
+
+###### The method involves creating ngrams of several orders, from one to six, and using these into the prediction model. So from the source data, taking larger and larger sample sizes allowed [tm::Corpus constructs](https://cran.r-project.org/web/packages/tm/vignettes/tm.pdf) that were then parsed into 6 ngrams, containing sequence of 1 word (for ngram1), two words for bigrams and so on until the 6th level. Each ngram contains a sequence of words and its frequency, as a count and as a relative frequency.
+
+###### The data exploration step went at a regular pace, but then the first quiz in Week2 reminded us that the model quality requires drastic improvements, and that small sample sizes and basic methods are simply not enough. This step presented quite a challenge, because as the quality of the model improved, the size of the data increased and since R's simple processing logic loads everything in RAM, special size constraints had to be met. At the end, after several tweaks and checks against testing data, all ngrams that were present one single time were dropped, allowing for a RData for shiny of around 10Mb for a sample share of 20% of input data. 
+
+Method Description 
+========================================================
+
+###### The method used is simple to understand: a backoff model that looks at 6-degrees ngrams for a prediction, and backs-off to 5 degree ngram if the first search is unsuccessful. The process continues back to trigrams, bigrams. If the search for bigrams is also unsuccessful, then the most frequent words in the corpus are then displayed from the unigram, the logic is inspired from Google's N-Gram project. See it live in action: <https://calin.shinyapps.io/predict_next_word/>
+
+###### List of the ngrams
+```{r}
+# load data containers
+load("20th_corpus_freq.Rdata")
+dim(ngram_stats)
+```
+
+Once the ngrams are clean and easy to use, [several other methods](http://anoopsarkar.github.io/nlp-class/assets/slides/lm.pdf) can be used: Backoff smoothing with discounting, Katz BackOff (include Good-Turing with Backoff Smoothing), Jelinek-Mercer Smoothing. These methods will be explored in the next Data Science specialization :-)
+
